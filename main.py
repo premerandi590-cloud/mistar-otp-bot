@@ -19,6 +19,7 @@ app = Client(
     bot_token=BOT_TOKEN
 )
 
+# Menu Buttons
 menu = ReplyKeyboardMarkup(
     [
         ["⏱ Set Time", "⭐ Premium"],
@@ -28,7 +29,7 @@ menu = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
-# Start command
+# Start
 @app.on_message(filters.command("start"))
 async def start(client, message):
     await message.reply(
@@ -36,7 +37,7 @@ async def start(client, message):
         reply_markup=menu
     )
 
-# Help menu
+# Help
 @app.on_message(filters.regex("ℹ️ Help"))
 async def help_menu(client, message):
     await message.reply(
@@ -48,7 +49,23 @@ async def help_menu(client, message):
         "🗑 Delete Old Msg"
     )
 
-# Set delete time
+# Premium Info
+@app.on_message(filters.regex("⭐ Premium"))
+async def premium_info(client, message):
+    await message.reply(
+        "⭐ Premium Features:\n"
+        "• Unlimited delete control\n"
+        "• Faster auto delete\n"
+        "• Priority support\n\n"
+        "Contact admin for premium."
+    )
+
+# Set Time Button
+@app.on_message(filters.regex("⏱ Set Time"))
+async def time_info(client, message):
+    await message.reply("Use command:\n\n/settime 30")
+
+# Set Delete Time
 @app.on_message(filters.command("settime"))
 async def set_time(client, message):
     global delete_time
@@ -62,7 +79,20 @@ async def set_time(client, message):
     except:
         await message.reply("Usage: /settime 30")
 
-# Toggle auto delete
+# Add Premium
+@app.on_message(filters.command("premium"))
+async def add_premium(client, message):
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    try:
+        user_id = int(message.command[1])
+        premium_users.append(user_id)
+        await message.reply("⭐ User added to premium")
+    except:
+        await message.reply("Usage: /premium USER_ID")
+
+# Auto Delete Toggle
 @app.on_message(filters.regex("⚡ Auto Delete ON/OFF"))
 async def toggle_delete(client, message):
     global auto_delete_status
@@ -77,7 +107,7 @@ async def toggle_delete(client, message):
     else:
         await message.reply("❌ Auto Delete Disabled")
 
-# Delete old messages
+# Delete Old Messages
 @app.on_message(filters.regex("🗑 Delete Old Msg"))
 async def delete_old(client, message):
 
@@ -87,29 +117,16 @@ async def delete_old(client, message):
     chat_id = message.chat.id
     deleted = 0
 
-    async for msg in client.get_chat_history(chat_id, limit=100):
+    async for msg in client.get_chat_history(chat_id, limit=200):
         try:
             await msg.delete()
             deleted += 1
         except:
             pass
 
-    await message.reply(f"🗑 Deleted {deleted} old messages")
+    await message.reply(f"🗑 Deleted {deleted} messages")
 
-# Add premium user
-@app.on_message(filters.command("premium"))
-async def add_premium(client, message):
-    if message.from_user.id != ADMIN_ID:
-        return
-
-    try:
-        user_id = int(message.command[1])
-        premium_users.append(user_id)
-        await message.reply("⭐ User added to premium")
-    except:
-        await message.reply("Usage: /premium USER_ID")
-
-# Auto delete messages
+# Auto Delete System
 @app.on_message(filters.group)
 async def auto_delete(client, message):
 
